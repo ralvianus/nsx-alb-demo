@@ -3,7 +3,7 @@ kind: GSLBHostRule
 metadata:
   name: gslbhostrule
 spec:
-  fqdn: echo-server.apps.seakcloud.com
+  fqdn: echo-server.apps.corp.local
   trafficSplit:
   - cluster: ocp-east-admin
     weight: 20

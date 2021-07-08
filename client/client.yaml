@@ -63,7 +63,7 @@ metadata:
     name: client
     app: avi-gslb
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/cluster-issuer: SelfSigned
 spec:
   tls:
   - secretName: client-tls

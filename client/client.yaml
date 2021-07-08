@@ -17,8 +17,9 @@ spec:
     spec:
       containers:
       - image: ghcr.io/yogendra/nsx-alb-client:latest
+        imagePullPolicy: Always
         name: nsx-alb-client
-        resources: 
+        resources:
           requests:
             memory: "64Mi"
             cpu: "250m"
@@ -38,7 +39,6 @@ spec:
             items:
             - path: "demo-config.js"
               key: "demo-config.js"
-            
 
 ---
 kind: Service
@@ -48,7 +48,7 @@ metadata:
 spec:
   selector:
     app: client
-  type: ClusterIP 
+  type: ClusterIP
   ports:
   - name: http
     port: 80
@@ -61,18 +61,16 @@ metadata:
   name: client
   labels:
     name: client
+    app: avi-gslb
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    ingress.kubernetes.io/force-ssl-redirect: "true"
-    kubernetes.io/ingress.class: contour
-    kubernetes.io/tls-acme: "true"
 spec:
   tls:
   - secretName: client-tls
     hosts:
-      - client.nsxbg.cna-demo.ga
+      - client.apps.corp.local
   rules:
-  - host: client.nsxbg.cna-demo.ga
+  - host: client.apps.corp.local
     http:
       paths:
       - pathType: Prefix
@@ -80,7 +78,7 @@ spec:
         backend:
           service:
             name: client
-            port: 
+            port:
               name: http
 ---
 apiVersion: v1
@@ -91,7 +89,7 @@ data:
   demo-config.js: |
     window.demoConfig = {
       "server":{
-        "url": "https://echo-server.nsxbg.cna-demo.ga"
+        "url": "https://echo-server.apps.corp.local"
       },
       "request": {
         "interval": 10

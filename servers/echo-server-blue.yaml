@@ -3,19 +3,19 @@ kind: Deployment
 metadata:
   labels:
     app: echo-server
-    env: blue
+    version: blue
   name: echo-server-blue
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: echo-server
-      env: blue
+      version: blue
   template:
     metadata:
       labels:
         app: echo-server
-        env: blue
+        version: blue
     spec:
       containers:
       - image: ghcr.io/yogendra/echo-server
@@ -47,7 +47,7 @@ spec:
   selector:
     app:  echo-server
     version: blue
-  type:  ClusterIP 
+  type:  ClusterIP
   ports:
   - name:  http
     port:  80
@@ -61,18 +61,16 @@ metadata:
   labels:
     name: echo-server
     version: blue
+    app: avi-gslb
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    ingress.kubernetes.io/force-ssl-redirect: "true"
-    kubernetes.io/ingress.class: contour
-    kubernetes.io/tls-acme: "true"
 spec:
   tls:
   - secretName: echo-server-blue-tls
     hosts:
-      - echo-server-blue.nsxbg.cna-demo.ga
+      - echo-server.apps.corp.local
   rules:
-  - host: echo-server-blue.nsxbg.cna-demo.ga
+  - host: echo-server.apps.corp.local
     http:
       paths:
       - pathType: Prefix
@@ -80,5 +78,5 @@ spec:
         backend:
           service:
             name: echo-server-blue
-            port: 
+            port:
               name: http

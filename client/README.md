@@ -1,70 +1,127 @@
-# Getting Started with Create React App
+# Blue Green Testing - Client
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Demo client for DNS/HTTP based blue-green deployment visualization
 
-## Available Scripts
+## Deploy
 
-In the project directory, you can run:
+1. **Setup Probe Configuration**
 
-### `npm start`
+    Select one of the probe mechanism and setup config for that
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+    a. DNS based probe: edit and Apply `client-dns.yaml`
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+      ```bash
+      kubectl apply -f client-dns.yaml
+      ```
 
-### `npm test`
+      **OR**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+    b. HTTP based probe: edit and Apply `client-http.yaml`
 
-### `npm run build`
+      ```bash
+      kubectl apply -f client-dns.yaml
+      ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    **Configuration Options**
+    |value|Meaning | Example |
+    |-|-|-|
+    |`port` | Port on which server should run (Number) | `5000` |
+    |`endpoint.address` | Addres of the endpoint to probe. (URL) | `https://mysite.com` | |
+    |`endpoint.type` | Type of endpoint - `web` or `dns` | `web`, `dns`| |
+    |`endpoint.versions` | Version names. Required for web type endpoint (Array of string) | `["blue","green"]` | |
+    |`endpoint.nameservers` | List of name servers. Required for dns type endpoint | `["8.8.8.8","4.4.4.4"]`|
+    |`endpoint.versionMap` | Map IP addresses to version, Required for dns type endpoint | `{"10.0.0.1": "blue", "10.0.0.2": "green"}`|
+    | `probe.interval` | Amount of time in milliseconds between probes. (Number) | `10`|
+    | `sample.interval` | Amount of time in milliseconds between capturing sample (Number) | `10` |
+    | `sample.max` | Maximum samples to keep (Number) | `600`|
+    | `graph.colors` | Array of colors names for the graph | `["blue","green"]` |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. **Deploy Client Module**
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    Edit and apply `client.yaml`
 
-### `npm run eject`
+    ```bash
+    kubectl apply -f client.yaml
+    ```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+1. Navigate to frontend url specified in the `Ingress` resource. Example: [client.nsxbg.core.cna-demo.ga](https://client.nsxbg.core.cna-demo.ga)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Build
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+1. Build docker container
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+    ```bash
+    npm run docker-build
+    ```
 
-## Learn More
+1. Push image
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    ```bash
+    npm run docker-publish
+    ```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Develop
 
-### Code Splitting
+1. Set config environment variable
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+    **Bash**
 
-### Analyzing the Bundle Size
+    ```bash
+    export CONFIG_JSON="$(cat test/config-http.json)"
+    # OR for DNS
+    export CONFIG_JSON="$(cat test/config-dns.json)"
+    ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+    **Fish**
 
-### Making a Progressive Web App
+    ```bash
+    set -gx CONFIG_JSON (cat test/config-http.json)
+    # OR for DNS
+    set -gx CONFIG_JSON (cat test/config-dns.json)
+    ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. Run backend
 
-### Advanced Configuration
+    ```bash
+    npm start
+    ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+    Point browser to [localhost:3001](http://localhost:3001)
 
-### Deployment
+1. Run frontend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+    ```bash
+    cd client
+    npm start
+    ```
 
-### `npm run build` fails to minify
+    Point browser to [localhost:3000](http://localhost:3000)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Testing / Running
+
+### Test - Backend
+
+1. DNS based probing
+    1. Change DNS to 50:50
+
+        ```bash
+        aws route53 change-resource-record-sets --hosted-zone-id=Z00790433JF8Q9KA66EHM  --change-batch file://test/dns0.json
+        ```
+
+    1. Change DNS to 100:0
+
+        ```bash
+        aws route53 change-resource-record-sets --hosted-zone-id=Z00790433JF8Q9KA66EHM  --change-batch file://test/dns1.json
+        ```
+
+    1. Change DNS to 0:100
+
+        ```bash
+        aws route53 change-resource-record-sets --hosted-zone-id=Z00790433JF8Q9KA66EHM  --change-batch file://test/dns2.json
+        ```
+
+1. Change HTTP
+
+    1. Change HTTP to 50:50
+    1. Change HTTP to 100:0
+    1. Change HTTP to 0:100

@@ -1,2 +1,4 @@
 .envrc
 kubeconfig*.yml
+**/node_modules/
+

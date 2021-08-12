@@ -16,6 +16,7 @@ spec:
         app: client
     spec:
       containers:
+<<<<<<< HEAD
       - image: ghcr.io/yogendra/nsx-alb-client:latest
         imagePullPolicy: Always
         name: nsx-alb-client
@@ -40,19 +41,39 @@ spec:
             - path: "demo-config.js"
               key: "demo-config.js"
 
+=======
+        - image: ghcr.io/yogendra/blue-green:latest
+          name: client
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: CONFIG_JSON
+              valueFrom:
+                configMapKeyRef:
+                  key: "config.json"
+                  name: client
+>>>>>>> 706100f79a529a30ae518a55fca9b49f3d6c3a51
 ---
 kind: Service
 apiVersion: v1
 metadata:
-  name:  client
+  name: client
 spec:
   selector:
     app: client
   type: ClusterIP
   ports:
-  - name: http
-    port: 80
-    targetPort: http
+    - name: http
+      port: 80
+      targetPort: http
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -66,6 +87,7 @@ metadata:
     cert-manager.io/cluster-issuer: SelfSigned
 spec:
   tls:
+<<<<<<< HEAD
   - secretName: client-tls
     hosts:
       - client.apps.corp.local
@@ -99,3 +121,21 @@ data:
         "colors": ["blue", "green", "cyan", "orange"]
       }
     }
+=======
+    - secretName: client-tls
+      hosts:
+        - client.nsxbg.cna-demo.ga
+  rules:
+    - host: client.nsxbg.cna-demo.ga
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: client
+                port:
+                  name: http
+---
+
+>>>>>>> 706100f79a529a30ae518a55fca9b49f3d6c3a51

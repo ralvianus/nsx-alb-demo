@@ -68,9 +68,9 @@ spec:
   tls:
   - secretName: echo-server-blue-tls
     hosts:
-      - echo-server.apps.corp.local
+      - echo-server.apps.lab01.one
   rules:
-  - host: echo-server.apps.corp.local
+  - host: echo-server.apps.lab01.one
     http:
       paths:
       - pathType: Prefix
